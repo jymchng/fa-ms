@@ -1,0 +1,124 @@
+services:
+  bot-test-dev:
+    container_name: bot-test-dev
+    image: bot-test-dev
+    restart: "no" # unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # ✨ Target the dev stage
+      target: development
+      args:
+        BUILD_ENV: development
+    # Mount host directory to docker container to support watch mode
+    # This ensures that the NestJS container manages the node_modules folder
+    # rather than synchronizes it with the host machine
+    # volumes:
+    #   - ./secrets/docker-volume/.github.private.key.ssh:/secrets/.github.private.key.ssh:ro
+    #   - ./:/usr/src/app
+    #   - /usr/src/app/node_modules
+    env_file:
+      - .env.development
+    environment:
+      - INSIDE_DOCKER=1
+    # 'Ports' propels the reach of your Docker containers to the host machine and beyond, whereas 'expose' retains the communication within the Docker network.
+    expose:
+      - ${PORT}
+    # ports:
+    #   - ${PORT}:${PORT}
+    # command: npm run start:dev
+    networks:
+      - bot-test-development
+      - jim-caddy_default
+    # https://stackoverflow.com/a/62128945/19504610
+    links:
+      - bot-test-dev-redis-server
+      # - minio-server-development
+      - bot-test-dev-database
+    depends_on:
+      # - bot-test-dev-redis-server
+      # - bot-test-dev-database
+      bot-test-dev-redis-server:
+        condition: service_started
+      # - minio-server-development
+      bot-test-dev-database:
+        condition: service_started
+    # secrets:
+    #   - github_deploy_private_key
+    
+
+  bot-test-dev-redis-server:
+    container_name: bot-test-dev-redis-server
+    image: "redis:alpine"
+    restart: always
+    env_file: 
+      - .env.development
+    command: "--port ${REDIS_PORT}"
+    expose:
+      - ${REDIS_PORT}
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    networks:
+      - bot-test-development
+  
+  # minio-server-development:
+  #   image: minio/minio:latest
+  #   restart: always
+  #   container_name: minio-server-development
+  #   volumes:
+  #     - ./minio/development:/data
+  #   expose:
+  #     - ${MINIO_PORT_FIRST}
+  #     - ${MINIO_PORT_SECOND}
+  #   ports:
+  #     - '${MINIO_PORT_CONSOLE}:${MINIO_PORT_CONSOLE}'
+  #     # - '${MINIO_PORT_FIRST}:${MINIO_PORT_FIRST}'
+  #   env_file:
+  #     - .env.development
+  #     - secrets/.minio.development
+  #   # https://stackoverflow.com/a/63443654/19504610
+  #   command: "server /data --address ':${MINIO_PORT_FIRST}' --console-address ':${MINIO_PORT_CONSOLE}'"
+  #   # https://docs.docker.com/compose/compose-file/05-services/#short-syntax-4
+  #   # secrets:
+  #   #   - MINIO_ROOT_PASSWORD
+  #   networks:
+  #     - bot-test-development
+  #     - jim-caddy_default
+
+
+  bot-test-dev-database:
+    image: bitnami/postgresql:latest
+    restart: always
+    container_name: bot-test-dev-database
+    env_file: 
+      - .env.development
+      - secrets/.db.development
+    user: root
+    volumes:
+      - ./docker-volumes/bot-test-dev-database:/bitnami/postgresql
+      # - ./create-dbs.sql:/docker-entrypoint-initdb.d/create-dbs.sql
+    ports:
+      - ${DATABASE_PORT}:5432 # Remove this on production
+    expose:
+      - 5432
+    # environment:
+    #   - POSTGRESQL_USERNAME=${DATABASE_USER}
+    #   - POSTGRESQL_PASSWORD=${DATABASE_USER_PASSWORD}
+    #   - POSTGRESQL_DATABASE=${DATABASE_NAME}
+    #   - POSTGRESQL_HOST_AUTH_METHOD="trust"
+    #   - POSTGRESQL_POSTGRES_PASSWORD=${DATABASE_POSTGRES_USER_PASSWORD}
+
+
+networks:
+  bot-test-development:
+    # driver: bridge
+  # nekobot-production:
+  jim-caddy_default:
+    external: true
+
+# https://docs.docker.com/compose/compose-file/09-secrets/#example-2
+# secrets:
+#   MINIO_ROOT_PASSWORD:
+#     file: secrets/.minio.development
+  # github_deploy_private_key:
+  #   file: secrets/docker-volume/.github.private.key.ssh

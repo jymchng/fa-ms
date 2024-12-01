@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+set +e # ignore error
+npm run format
+set -e
+set +e # ignore error
+npm run test
+# Check and delete development_logs
+if [ -d "development_logs" ]; then
+  git rm --cached development_logs/*
+  rm -fr development_logs
+fi
+
+# Check and delete production_logs
+if [ -d "production_logs" ]; then
+  git rm --cached production_logs/*
+  rm -fr production_logs
+fi
+
+# Check and delete build
+if [ -d "build" ]; then
+  git rm --cached build/*
+  rm -fr build
+fi
+
+# Check and delete build-dev
+if [ -d "build-dev" ]; then
+  git rm --cached build-dev/*
+  rm -fr build-dev
+fi
+
+# Check and delete build-dev
+if [ -d "coverage" ]; then
+  git rm --cached coverage/*
+  rm -fr coverage
+fi
+set -e
