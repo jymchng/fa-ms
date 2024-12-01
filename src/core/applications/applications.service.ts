@@ -1,15 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
-import { HouseholdMember } from '@prisma/client';
-
-interface SchemeCriteria {
-  employment_status?: string;
-  marital_status?: string;
-  has_children?: {
-    school_level: string;
-  };
-}
 
 @Injectable()
 export class ApplicationsService {
@@ -43,48 +34,48 @@ export class ApplicationsService {
     }
 
     // Check eligibility criteria
-    const criteria = scheme.criteria as SchemeCriteria;
+    const criteria = scheme.criteria as any;
     let isEligible = true;
 
-    if (
-      criteria.employment_status &&
-      criteria.employment_status !== applicant.employmentStatus
-    ) {
+    if (criteria.employment_status && criteria.employment_status !== applicant.employmentStatus) {
       isEligible = false;
     }
 
-    if (
-      criteria.marital_status &&
-      criteria.marital_status !== applicant.maritalStatus
-    ) {
+    if (criteria.marital_status && criteria.marital_status !== applicant.maritalStatus) {
       isEligible = false;
     }
 
     if (criteria.has_children) {
-      const hasChildrenInPrimarySchool = applicant.householdMembers.some(
-        (member: HouseholdMember) => {
-          const age =
-            new Date().getFullYear() -
-            new Date(member.dateOfBirth).getFullYear();
-          return age >= 6 && age <= 12; // Primary school age range
-        },
-      );
+      const hasChildrenInPrimarySchool = applicant.householdMembers.some(member => {
+        const age = new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear();
+        return age >= 6 && age <= 12; // Primary school age range
+      });
 
-      if (
-        criteria.has_children.school_level === '== primary' &&
-        !hasChildrenInPrimarySchool
-      ) {
+      if (criteria.has_children.school_level === '== primary' && !hasChildrenInPrimarySchool) {
         isEligible = false;
       }
     }
 
     if (!isEligible) {
-      throw new BadRequestException(
-        'Applicant is not eligible for this scheme',
-      );
+      throw new BadRequestException('Applicant is not eligible for this scheme');
     }
 
     // Create the application
+    return this.prisma.application.create({
+      data: {
+        applicantId: createApplicationDto.applicantId,
+        schemeId: createApplicationDto.schemeId,
+        administratorId: createApplicationDto.administratorId,
+        status: 'PENDING',
+      },
+      include: {
+        applicant: true,
+        scheme: true,
+        administrator: true,
+      },
+    });
+  }
+}
     return this.prisma.application.create({
       data: {
         applicantId: createApplicationDto.applicantId,

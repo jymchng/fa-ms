@@ -31,8 +31,8 @@
     "docker-prod": "bash scripts/docker-run.sh production noclean",
     "docker-dev-clean": "bash scripts/docker-run.sh development clean",
     "docker-prod-clean": "bash scripts/docker-run.sh production clean",
-    "docker-local": "docker compose --env-file secrets/.db.development --env-file .env.development -f docker-compose-dev.yaml down bot-test-dev-redis-server bot-test-dev-database && docker compose --env-file secrets/.db.development --env-file .env.development -f docker-compose-dev.yaml up bot-test-dev-redis-server bot-test-dev-database",
-    "docker-local-clean": "docker compose --env-file secrets/.db.development --env-file .env.development -f docker-compose-dev.yaml down bot-test-dev-redis-server bot-test-dev-database && docker system prune -af && docker compose --env-file secrets/.db.development --env-file .env.development -f docker-compose-dev.yaml up bot-test-dev-redis-server bot-test-dev-database",
+    "docker-local": "docker compose --env-file .env.development --env-file secrets/.db.development -f docker-compose-dev.yaml down fa-ms-dev-database && docker compose --env-file .env.development --env-file secrets/.db.development -f docker-compose-dev.yaml up fa-ms-dev-database",
+    "docker-local-clean": "docker compose --env-file .env.development --env-file secrets/.db.development -f docker-compose-dev.yaml down fa-ms-dev-database && docker system prune -af && docker compose --env-file .env.development --env-file secrets/.db.development -f docker-compose-dev.yaml up fa-ms-dev-database",
     "prisma:prod-deploy": "dotenv -e secrets/.db.production -e .env.production -- npx prisma migrate deploy",
     "prisma:dev-create-only": "dotenv -e secrets/.db.development -e .env.development -- npx prisma migrate dev --create-only",
     "prisma:dev-migrate": "dotenv -e secrets/.db.development -e .env.development -- npx prisma migrate dev",
@@ -40,7 +40,7 @@
     "generate:prisma": "npx prisma generate",
     "reinstall-self-deps": "npm uninstall jacob-bot-common && npm i git+ssh://git@github.com/mizu-labs/jacob-bot-common",
     "docker-all-down": "npm run docker-dev-down && npm run docker-prod-down",
-    "docker-dev-down": "docker compose --env-file secrets/.db.development --env-file .env.development -f docker-compose-dev.yaml down",
+    "docker-dev-down": "docker compose --env-file .env.development --env-file secrets/.db.development -f docker-compose-dev.yaml down",
     "docker-prod-down": "docker compose --env-file secrets/.db.production --env-file .env.production -f docker-compose-prod.yaml down"
   },
   "bin": {
@@ -112,7 +112,6 @@
     "@nestia/e2e": "^0.7.0",
     "@nestia/fetcher": "^3.8.1",
     "@nestjs/common": "^10.0.0",
-    "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/microservices": "^10.4.12",
