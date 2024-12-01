@@ -1,7 +1,7 @@
 services:
-  bot-test-prod:
-    container_name: bot-test-prod
-    image: bot-test-prod
+  fa-ms-prod:
+    container_name: fa-ms-prod
+    image: fa-ms-prod
     restart: no # unless-stopped
     build:
       context: .
@@ -10,13 +10,6 @@ services:
       target: production
       args:
         BUILD_ENV: production
-    # Mount host directory to docker container to support watch mode
-    # This ensures that the NestJS container manages the node_modules folder
-    # rather than synchronizes it with the host machine
-    # volumes:
-    #   - ./secrets/docker-volume/.github.private.key.ssh:/secrets/.github.private.key.ssh:ro
-    #   - ./:/usr/src/app
-    #   - /usr/src/app/node_modules
     env_file:
       - .env.production
     environment:
@@ -24,29 +17,21 @@ services:
     # 'Ports' propels the reach of your Docker containers to the host machine and beyond, whereas 'expose' retains the communication within the Docker network.
     expose:
       - ${PORT}
-    # ports:
-    #   - ${PORT}:${PORT}
-    # command: npm run start:dev
     networks:
-      - bot-test-production
+      - fa-ms-production
       - jim-caddy_default
     # https://stackoverflow.com/a/62128945/19504610
     links:
-      - bot-test-prod-redis-server
-    #   - minio-server-development
-    #   - nekobot_database_development
-    # secrets:
-    #   - github_deploy_private_key
+      - fa-ms-prod-redis-server
     depends_on:
-      bot-test-prod-redis-server:
+      fa-ms-prod-redis-server:
         condition: service_started
-        # - minio-server-development
-      bot-test-prod-database:
+      fa-ms-prod-database:
         condition: service_started
 
 
-  bot-test-prod-redis-server:
-    container_name: bot-test-prod-redis-server
+  fa-ms-prod-redis-server:
+    container_name: fa-ms-prod-redis-server
     image: "redis:alpine"
     restart: always
     env_file: 
@@ -57,66 +42,22 @@ services:
     ports:
       - '${REDIS_PORT}:${REDIS_PORT}'
     networks:
-      - bot-test-production
+      - fa-ms-production
   
-  # minio-server-development:
-  #   image: minio/minio:latest
-  #   restart: always
-  #   container_name: minio-server-development
-  #   volumes:
-  #     - ./minio/development:/data
-  #   expose:
-  #     - ${MINIO_PORT_FIRST}
-  #     - ${MINIO_PORT_SECOND}
-  #   ports:
-  #     - '${MINIO_PORT_CONSOLE}:${MINIO_PORT_CONSOLE}'
-  #     # - '${MINIO_PORT_FIRST}:${MINIO_PORT_FIRST}'
-  #   env_file:
-  #     - .env.production
-  #     - secrets/.minio.development
-  #   # https://stackoverflow.com/a/63443654/19504610
-  #   command: "server /data --address ':${MINIO_PORT_FIRST}' --console-address ':${MINIO_PORT_CONSOLE}'"
-  #   # https://docs.docker.com/compose/compose-file/05-services/#short-syntax-4
-  #   # secrets:
-  #   #   - MINIO_ROOT_PASSWORD
-  #   networks:
-  #     - nekobot-development
-  #     - jim-caddy_default
-
-
-  bot-test-prod-database:
+  fa-ms-prod-database:
     image: bitnami/postgresql:latest
     restart: always
-    container_name: bot-test-prod-database
+    container_name: fa-ms-prod-database
     env_file: 
       - .env.production
       - secrets/.db.production
     user: root
     volumes:
-      - ./docker-volumes/bot-test-prod-database:/bitnami/postgresql
-      # - ./create-dbs.sql:/docker-entrypoint-initdb.d/create-dbs.sql
+      - ./docker-volumes/fa-ms-prod-database:/bitnami/postgresql
     ports:
       - ${DATABASE_PORT}:5432 # Remove this on production
     expose:
       - 5432
-    # environment:
-    #   - POSTGRESQL_USERNAME=${DATABASE_USER}
-    #   - POSTGRESQL_PASSWORD=${DATABASE_USER_PASSWORD}
-    #   - POSTGRESQL_DATABASE=${DATABASE_NAME}
-    #   - POSTGRESQL_HOST_AUTH_METHOD="trust"
-    #   - POSTGRESQL_POSTGRES_PASSWORD=${DATABASE_POSTGRES_USER_PASSWORD}
-
 
 networks:
-  bot-test-production:
-    # driver: bridge
-  # bot-test-production:
-  jim-caddy_default:
-    external: true
-
-# https://docs.docker.com/compose/compose-file/09-secrets/#example-2
-# secrets:
-#   MINIO_ROOT_PASSWORD:
-#     file: secrets/.minio.development
-  # github_deploy_private_key:
-  #   file: secrets/docker-volume/.github.private.key.ssh
+  fa-ms-production:

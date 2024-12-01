@@ -76,17 +76,9 @@ case "$ENV" in
         ;;
 esac
 
-# Common post-invocations
-log "Minifying all \`.js\` files inside \`$BUILD_FOLDER\`"
-find $BUILD_FOLDER -type f -name "*.js" -exec bash -c 'echo ">>> minifying {}" && npx esbuild --bundle "{}" --minify --sourcemap --platform=node --outfile="{}" --allow-overwrite' \;
-log "Minified all \`.js\` files!"
 log "Making logs directory in $LOG_DIR"
 mkdir -p $LOG_DIR
 bash scripts/copyfiles.sh $ENV
 
 cat prisma/schema.prisma
-log "Running ls -la ./node_modules/@prisma/client"
-ls -la ../node_modules/@prisma/client
-log "Running ls -la ./node_modules/.prisma/client"
-ls -la ../node_modules/.prisma/client
 exit 0

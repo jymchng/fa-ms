@@ -8,291 +8,97 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                  String                @id @default(uuid()) @map("id")
-  email               String                @unique @map("email")
-  password            String                @map("password")
-  wallets             Wallet[]              @relation("UserWallets")
-  stores              Store[]               @relation("UserStores")
-  roles               UserRole[]            @relation("UserRoles")
-  sessions            Session[]             @relation("UserSessions")
-  activityLogs        UserActivityLog[]     @relation("UserActivityLogs")
-  notifications       Notification[]        @relation("UserNotifications")
-  verificationTokens  VerificationToken[]   @relation("UserVerificationTokens")
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @updatedAt @map("updated_at")
-  @@map("users")
-}
+// Financial Assistance Scheme Models
 
-model Wallet {
-  id             String         @id @default(uuid()) @map("id")
-  address        String         @map("address")
-  user           User           @relation("UserWallets", fields: [userId], references: [id])
-  userId         String         @map("user_id")
-  networks       Network[]      @relation("WalletNetworks")
-  transactions   Transaction[]  @relation("WalletTransactions")
-  @@map("wallets")
-}
-
-model Network {
-  id                String     @id @default(uuid()) @map("id")
-  chain             Chain      @map("chain")
-  wallet            Wallet     @relation("WalletNetworks", fields: [walletId], references: [id])
-  walletId          String     @map("wallet_id")
-  acceptedCurrencies Currency[] @map("accepted_currencies")
-  @@map("networks")
-}
-
-model Store {
-  id          String      @id @default(uuid()) @map("id")
-  name        String      @map("name")
-  owner       User        @relation("UserStores", fields: [ownerId], references: [id])
-  ownerId     String      @map("owner_id")
-  products    Product[]   @relation("StoreProducts")
-  qrCodes     QRCode[]    @relation("StoreQRCodes")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  @@map("stores")
-}
-
-model Product {
-  id             String           @id @default(uuid()) @map("id")
-  name           String           @map("name")
-  image          String           @map("image")
-  price          Float            @map("price")
-  currency       Currency         @map("currency")
-  store          Store            @relation("StoreProducts", fields: [storeId], references: [id])
-  storeId        String           @map("store_id")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  paymentMethods PaymentMethod[]  @relation("ProductPaymentMethods")
-  transactions   Transaction[]    @relation("ProductTransactions")
-  @@map("products")
-}
-
-model PaymentMethod {
-  id                String    @id @default(uuid()) @map("id")
-  product           Product   @relation("ProductPaymentMethods", fields: [productId], references: [id])
-  productId         String    @map("product_id")
-  acceptedCurrencies Currency[] @map("accepted_currencies")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  @@map("payment_methods")
-}
-
-// Authorization and Authentication Models
-
-model Session {
+model Administrator {
   id          String   @id @default(uuid()) @map("id")
-  userId      String   @map("user_id")
-  user        User     @relation("UserSessions", fields: [userId], references: [id])
+  email       String   @unique @map("email")
+  password    String   @map("password")
+  name        String   @map("name")
+  applications Application[] @relation("AdminApplications")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  expiresAt   DateTime @map("expires_at")
-  @@map("sessions")
+
+  @@map("administrators")
 }
 
-model VerificationToken {
+model Applicant {
+  id                String   @id @default(uuid()) @map("id")
+  name              String   @map("name")
+  dateOfBirth       DateTime @map("date_of_birth")
+  maritalStatus     MaritalStatus @map("marital_status")
+  employmentStatus  EmploymentStatus @map("employment_status")
+  sex               Sex      @map("sex")
+  applications      Application[] @relation("ApplicantApplications")
+  householdMembers HouseholdMember[] @relation("ApplicantHouseholdMembers")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("applicants")
+}
+
+model HouseholdMember {
+  id               String   @id @default(uuid()) @map("id")
+  name             String   @map("name")
+  dateOfBirth      DateTime @map("date_of_birth")
+  sex              Sex      @map("sex")
+  employmentStatus EmploymentStatus @map("employment_status")
+  relationship     String   @map("relationship")
+  applicant        Applicant @relation("ApplicantHouseholdMembers", fields: [applicantId], references: [id])
+  applicantId      String   @map("applicant_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("household_members")
+}
+
+model Scheme {
   id          String   @id @default(uuid()) @map("id")
-  token       String   @unique @map("token")
-  userId      String?  @map("user_id")
-  user        User?    @relation("UserVerificationTokens", fields: [userId], references: [id])
-  createdAt   DateTime @default(now()) @map("created_at")
-  expiresAt   DateTime @map("expires_at")
-  @@map("verification_tokens")
-}
-
-model Role {
-  id          String    @id @default(uuid()) @map("id")
-  name        String    @unique @map("name")
-  permissions RolePermission[] @relation("RolePermissions")
-  users       UserRole[] @relation("UserRoles")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  @@map("roles")
-}
-
-model Permission {
-  id          String    @id @default(uuid()) @map("id")
-  action      String    @map("action")
-  roles       RolePermission[] @relation("RolePermissions")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  @@map("permissions")
-}
-
-model RolePermission {
-  id          String    @id @default(uuid()) @map("id")
-  roleId      String    @map("role_id")
-  role        Role      @relation("RolePermissions", fields: [roleId], references: [id])
-  permissionId String   @map("permission_id")
-  permission  Permission @relation("RolePermissions", fields: [permissionId], references: [id])
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  @@map("role_permissions")
-}
-
-model UserRole {
-  id          String   @id @default(uuid()) @map("id")
-  userId      String   @map("user_id")
-  user        User     @relation("UserRoles", fields: [userId], references: [id])
-  roleId      String   @map("role_id")
-  role        Role     @relation("UserRoles", fields: [roleId], references: [id])
+  name        String   @map("name")
+  description String   @map("description")
+  criteria    Json     @map("criteria")
+  benefits    Json     @map("benefits")
+  applications Application[] @relation("SchemeApplications")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  @@map("user_roles")
+
+  @@map("schemes")
 }
 
-// Utility Models
+model Application {
+  id             String   @id @default(uuid()) @map("id")
+  applicant      Applicant @relation("ApplicantApplications", fields: [applicantId], references: [id])
+  applicantId    String   @map("applicant_id")
+  scheme         Scheme   @relation("SchemeApplications", fields: [schemeId], references: [id])
+  schemeId       String   @map("scheme_id")
+  administrator  Administrator @relation("AdminApplications", fields: [administratorId], references: [id])
+  administratorId String   @map("administrator_id")
+  status         ApplicationStatus @map("status")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-model UserActivityLog {
-  id          String   @id @default(uuid()) @map("id")
-  userId      String   @map("user_id")
-  user        User     @relation("UserActivityLogs", fields: [userId], references: [id])
-  action      String   @map("action")
-  ipAddress   String   @map("ip_address")
-  userAgent   String   @map("user_agent")
-  createdAt   DateTime @default(now()) @map("created_at")
-  @@map("user_activity_logs")
+  @@map("applications")
 }
 
-model Notification {
-  id          String   @id @default(uuid()) @map("id")
-  userId      String   @map("user_id")
-  user        User     @relation("UserNotifications", fields: [userId], references: [id])
-  message     String   @map("message")
-  read        Boolean  @default(false) @map("read")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  @@map("notifications")
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  WIDOWED
+  DIVORCED
 }
 
-model Transaction {
-  id            String   @id @default(uuid()) @map("id")
-  productId     String   @map("product_id")
-  product       Product  @relation("ProductTransactions", fields: [productId], references: [id])
-  amount        Float    @map("amount")
-  currency      Currency @map("currency")
-  walletId      String   @map("wallet_id")
-  wallet        Wallet   @relation("WalletTransactions", fields: [walletId], references: [id])
-  transactionHash String @map("transaction_hash")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  @@map("transactions")
+enum EmploymentStatus {
+  EMPLOYED
+  UNEMPLOYED
 }
 
-model QRCode {
-  id          String   @id @default(uuid()) @map("id")
-  storeId     String   @map("store_id")
-  store       Store    @relation("StoreQRCodes", fields: [storeId], references: [id])
-  code        String   @map("code")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  @@map("qr_codes")
+enum Sex {
+  MALE
+  FEMALE
 }
 
-enum Chain {
-  ETHEREUM_MAINNET @map("ethereum_mainnet")
-  BNB_SMART_CHAIN @map("bnb_smart_chain")
-  POLYGON @map("polygon")
-  OPTIMISM @map("optimism")
-  ARBITRUM @map("arbitrum")
-  BASE @map("base")
-  AVALANCHE_C_CHAIN @map("avalanche_c_chain")
-  FANTOM @map("fantom")
-  HARMONY @map("harmony")
-  MOONBEAM @map("moonbeam")
-  MOONRIVER @map("moonriver")
-  EVMOS @map("evmos")
-  CRONOS @map("cronos")
-  KCC @map("kcc")
-  BOBA @map("boba")
-  METIS @map("metis")
-  BITTORRENT @map("bittorrent")
-  FUSE @map("fuse")
-  REI @map("rei")
-  CALLISTO @map("callisto")
-  HIGH_PERFORMANCE_BLOCKCHAIN @map("high_performance_blockchain")
-  GOCHAIN @map("gochain")
-  BITGERT @map("bitgert")
-  PALM @map("palm")
-  EXPANSE @map("expanse")
-  THAICHAIN @map("thaichain")
-  METADIUM @map("metadium")
-  DIODE @map("diode")
-  THAICHAIN_2_0 @map("thaichain_2_0")
-  ELA_DID_SIDECHAIN @map("ela_did_sidechain")
-  KARDIACHAIN @map("kardiachain")
-  SHIBACHAIN @map("shibachain")
-  GENESIS_L1 @map("genesis_l1")
-  GOODDATA @map("gooddata")
-  SECURECHAIN @map("securechain")
-  TBWG_CHAIN @map("tbwg_chain")
-  DXCHAIN @map("dxchain")
-  XPLA @map("xpla")
-  VALORBIT @map("valorbit")
-  U2U_SOLARIS @map("u2u_solaris")
-  LUKSO @map("lukso")
-  CRAB_NETWORK @map("crab_network")
-  DARWINIA_NETWORK @map("darwinia_network")
-  ACRIA_INTELLICHAIN @map("acria_intellichain")
-  ENNOTHEM_MAINNET_PROTEROZOIC @map("ennothem_mainnet_proterozoic")
-  XDC_APOTHEM_NETWORK @map("xdc_apothem_network")
-  OPENPIECE @map("openpiece")
-  ZYX @map("zyx")
-  POLYGON_ZKEVM @map("polygon_zkevm")
-  VELAS_EVM @map("velas_evm")
-  ETHEREUM_CLASSIC @map("ethereum_classic")
-}
-
-enum Currency {
-  // G30 Currencies
-  AED // United Arab Emirates Dirham
-  AUD // Australian Dollar
-  BGN // Bulgarian Lev
-  BRL // Brazilian Real
-  CAD // Canadian Dollar
-  CHF // Swiss Franc
-  CNY // Chinese Yuan
-  CZK // Czech Koruna
-  DKK // Danish Krone
-  EUR // Euro
-  GBP // British Pound Sterling
-  HKD // Hong Kong Dollar
-  HRK // Croatian Kuna
-  HUF // Hungarian Forint
-  IDR // Indonesian Rupiah
-  ILS // Israeli New Shekel
-  INR // Indian Rupee
-  JPY // Japanese Yen
-  KRW // South Korean Won
-  MXN // Mexican Peso
-  MYR // Malaysian Ringgit
-  NOK // Norwegian Krone
-  NZD // New Zealand Dollar
-  PHP // Philippine Peso
-  PLN // Polish Zloty
-  RON // Romanian Leu
-  RUB // Russian Ruble
-  SEK // Swedish Krona
-  SGD // Singapore Dollar
-  THB // Thai Baht
-  TRY // Turkish Lira
-  USD // United States Dollar
-  ZAR // South African Rand
-
-  // Top 10 Cryptocurrencies
-  BTC // Bitcoin
-  ETH // Ethereum
-  USDC // USD Coin
-  BNB // Binance Coin
-  XRP // Ripple
-  ADA // Cardano
-  DOGE // Dogecoin
-  SOL // Solana
-  MATIC // Polygon
-  LTC // Litecoin
-
-  // Additional Cryptocurrencies
-  TON // Toncoin
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

@@ -11,28 +11,12 @@ WORKDIR /usr/src/app
 # Install git and SSH
 RUN apk add --no-cache git openssh bash
 
-# The file must be named id_ed25519
-COPY --chown=node:node ./secrets/docker-volume/id_ed25519 /secrets/id_ed25519
-
 # Create app directory
 
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
 # Copying this first prevents re-running npm install on every code change.
 COPY --chown=node:node package*.json ./
-
-# Install app dependencies using the `npm ci` command instead of `npm install`
-# `npm ci && npm cache clean --force` must be in the same RUN command as
-# `echo "Host github.com\n\tIdentityFile /secrets/id_ed25519\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config && \` for this to work
-RUN mkdir -p ~/.ssh && \
-    ssh-keyscan -H github.com >> ~/.ssh/known_hosts && \
-    eval "$(ssh-agent -s)" && \
-    ssh-add /secrets/id_ed25519 && \
-    echo "Host github.com\n\tIdentityFile /secrets/id_ed25519\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config && \
-    npm ci && npm cache clean --force
-
-# Delete the private key
-RUN rm /secrets/id_ed25519
 
 # Bundle app source
 COPY . .
