@@ -41,19 +41,29 @@ export class ApplicationsService {
     const criteria = scheme.criteria as any;
     let isEligible = true;
 
-    if (criteria.employment_status && criteria.employment_status !== applicant.employmentStatus) {
+    if (
+      criteria.employment_status &&
+      criteria.employment_status !== applicant.employmentStatus
+    ) {
       isEligible = false;
     }
 
-    if (criteria.marital_status && criteria.marital_status !== applicant.maritalStatus) {
+    if (
+      criteria.marital_status &&
+      criteria.marital_status !== applicant.maritalStatus
+    ) {
       isEligible = false;
     }
 
     if (criteria.has_children) {
-      const hasChildrenInPrimarySchool = applicant.householdMembers.some(member => {
-        const age = new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear();
-        return age >= 6 && age <= 12; // Primary school age range
-      });
+      const hasChildrenInPrimarySchool = applicant.householdMembers.some(
+        (member) => {
+          const age =
+            new Date().getFullYear() -
+            new Date(member.dateOfBirth).getFullYear();
+          return age >= 6 && age <= 12; // Primary school age range
+        },
+      );
 
       if (!hasChildrenInPrimarySchool) {
         isEligible = false;
@@ -61,11 +71,15 @@ export class ApplicationsService {
     }
 
     if (!isEligible) {
-      throw new BadRequestException('Applicant does not meet eligibility criteria');
+      throw new BadRequestException(
+        'Applicant does not meet eligibility criteria',
+      );
     }
 
     // First find or create a default administrator if none provided
-    const administratorId = createApplicationDto.administratorId || await this.getDefaultAdministrator();
+    const administratorId =
+      createApplicationDto.administratorId ||
+      (await this.getDefaultAdministrator());
 
     // Create application using unchecked create
     const createData: Prisma.ApplicationUncheckedCreateInput = {
@@ -88,8 +102,8 @@ export class ApplicationsService {
   private async getDefaultAdministrator(): Promise<string> {
     const defaultAdmin = await this.prisma.administrator.findFirst({
       where: {
-        email: 'admin@default.com'
-      }
+        email: 'admin@default.com',
+      },
     });
 
     if (defaultAdmin) {
@@ -101,7 +115,7 @@ export class ApplicationsService {
       data: {
         email: 'admin@default.com',
         name: 'Default Administrator',
-      }
+      },
     });
 
     return newAdmin.id;

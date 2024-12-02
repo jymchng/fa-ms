@@ -4,9 +4,9 @@ import sanitizeHtml from 'sanitize-html';
 const defaultOptions: sanitizeHtml.IOptions = {
   allowedTags: ['b', 'i', 'em', 'strong', 'a'],
   allowedAttributes: {
-    'a': ['href']
+    a: ['href'],
   },
-  allowedIframeHostnames: []
+  allowedIframeHostnames: [],
 };
 
 export function SanitizeHtml(options?: sanitizeHtml.IOptions) {

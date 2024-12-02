@@ -1,4 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger, INestApplication } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+  INestApplication,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 interface QueryEvent {
@@ -15,7 +21,10 @@ interface ErrorEvent {
 }
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
@@ -72,18 +81,25 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async cleanDatabase() {
-    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === 'test'
+    ) {
       const tableNames = await this.$queryRaw<Array<{ tablename: string }>>`
         SELECT tablename FROM pg_tables WHERE schemaname='public'
       `;
-      
+
       for (const { tablename } of tableNames) {
         if (tablename !== '_prisma_migrations') {
-          await this.$executeRawUnsafe(`TRUNCATE TABLE "public"."${tablename}" CASCADE;`);
+          await this.$executeRawUnsafe(
+            `TRUNCATE TABLE "public"."${tablename}" CASCADE;`,
+          );
         }
       }
       return true;
     }
-    throw new Error('Database cleanup is only available in development or test environment');
+    throw new Error(
+      'Database cleanup is only available in development or test environment',
+    );
   }
 }

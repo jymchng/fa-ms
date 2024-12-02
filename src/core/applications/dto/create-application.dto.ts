@@ -4,7 +4,7 @@ import { IsUUID, IsNotEmpty, IsOptional } from 'class-validator';
 export class CreateApplicationDto {
   @ApiProperty({
     description: 'The ID of the applicant applying for assistance',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
   @IsNotEmpty()
@@ -12,7 +12,7 @@ export class CreateApplicationDto {
 
   @ApiProperty({
     description: 'The ID of the financial assistance scheme being applied for',
-    example: '123e4567-e89b-12d3-a456-426614174001'
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @IsUUID()
   @IsNotEmpty()
@@ -21,7 +21,7 @@ export class CreateApplicationDto {
   @ApiProperty({
     description: 'The ID of the administrator processing the application',
     example: '123e4567-e89b-12d3-a456-426614174002',
-    required: false
+    required: false,
   })
   @IsUUID()
   @IsOptional()
@@ -30,7 +30,7 @@ export class CreateApplicationDto {
   @ApiProperty({
     description: 'Additional notes or comments for the application',
     example: 'Urgent case, please process ASAP',
-    required: false
+    required: false,
   })
   @IsOptional()
   notes?: string;

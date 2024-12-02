@@ -25,7 +25,7 @@ export class TransformInterceptor<T>
   ): Observable<Response<T>> {
     const request = context.switchToHttp().getRequest();
     return next.handle().pipe(
-      map(data => ({
+      map((data) => ({
         data,
         meta: {
           timestamp: new Date().toISOString(),

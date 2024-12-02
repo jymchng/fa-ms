@@ -26,27 +26,40 @@ export class SchemesService {
     const schemes = await this.prisma.scheme.findMany();
 
     // Filter schemes based on eligibility criteria
-    const eligibleSchemes = schemes.filter(scheme => {
+    const eligibleSchemes = schemes.filter((scheme) => {
       const criteria = scheme.criteria as any;
-      
+
       // Check employment status criteria
-      if (criteria.employment_status && criteria.employment_status !== applicant.employmentStatus) {
+      if (
+        criteria.employment_status &&
+        criteria.employment_status !== applicant.employmentStatus
+      ) {
         return false;
       }
 
       // Check marital status criteria
-      if (criteria.marital_status && criteria.marital_status !== applicant.maritalStatus) {
+      if (
+        criteria.marital_status &&
+        criteria.marital_status !== applicant.maritalStatus
+      ) {
         return false;
       }
 
       // Check household criteria
       if (criteria.has_children) {
-        const hasChildrenInPrimarySchool = applicant.householdMembers.some(member => {
-          const age = new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear();
-          return age >= 6 && age <= 12; // Primary school age range
-        });
+        const hasChildrenInPrimarySchool = applicant.householdMembers.some(
+          (member) => {
+            const age =
+              new Date().getFullYear() -
+              new Date(member.dateOfBirth).getFullYear();
+            return age >= 6 && age <= 12; // Primary school age range
+          },
+        );
 
-        if (criteria.has_children.school_level === '== primary' && !hasChildrenInPrimarySchool) {
+        if (
+          criteria.has_children.school_level === '== primary' &&
+          !hasChildrenInPrimarySchool
+        ) {
           return false;
         }
       }

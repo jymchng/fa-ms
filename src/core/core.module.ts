@@ -16,11 +16,13 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
 @Module({
   imports: [
     PrismaModule,
-    ThrottlerModule.forRoot([{
-      name: 'short',
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
   ],
   controllers: [
     ApplicantsController,
