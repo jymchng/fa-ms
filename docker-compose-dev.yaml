@@ -15,6 +15,7 @@ services:
       - secrets/.db.development
     environment:
       - INSIDE_DOCKER=1
+      - DATABASE_CONTAINER_NAME=fa-ms-dev-database
     # 'Ports' propels the reach of your Docker containers to the host machine and beyond, whereas 'expose' retains the communication within the Docker network.
     expose:
       - ${PORT}
