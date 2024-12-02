@@ -1,10 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
     return this.prisma.application.findMany({
@@ -17,20 +18,23 @@ export class ApplicationsService {
   }
 
   async create(createApplicationDto: CreateApplicationDto) {
-    // Check if applicant is eligible for the scheme
+    // Check if applicant exists
+    const applicant = await this.prisma.applicant.findUnique({
+      where: { id: createApplicationDto.applicantId },
+      include: { householdMembers: true },
+    });
+
+    if (!applicant) {
+      throw new BadRequestException('Applicant not found');
+    }
+
+    // Check if scheme exists
     const scheme = await this.prisma.scheme.findUnique({
       where: { id: createApplicationDto.schemeId },
     });
 
-    const applicant = await this.prisma.applicant.findUnique({
-      where: { id: createApplicationDto.applicantId },
-      include: {
-        householdMembers: true,
-      },
-    });
-
-    if (!scheme || !applicant) {
-      throw new BadRequestException('Invalid scheme or applicant ID');
+    if (!scheme) {
+      throw new BadRequestException('Scheme not found');
     }
 
     // Check eligibility criteria
@@ -51,23 +55,28 @@ export class ApplicationsService {
         return age >= 6 && age <= 12; // Primary school age range
       });
 
-      if (criteria.has_children.school_level === '== primary' && !hasChildrenInPrimarySchool) {
+      if (!hasChildrenInPrimarySchool) {
         isEligible = false;
       }
     }
 
     if (!isEligible) {
-      throw new BadRequestException('Applicant is not eligible for this scheme');
+      throw new BadRequestException('Applicant does not meet eligibility criteria');
     }
 
-    // Create the application
+    // First find or create a default administrator if none provided
+    const administratorId = createApplicationDto.administratorId || await this.getDefaultAdministrator();
+
+    // Create application using unchecked create
+    const createData: Prisma.ApplicationUncheckedCreateInput = {
+      status: 'PENDING',
+      applicantId: createApplicationDto.applicantId,
+      schemeId: createApplicationDto.schemeId,
+      administratorId,
+    };
+
     return this.prisma.application.create({
-      data: {
-        applicantId: createApplicationDto.applicantId,
-        schemeId: createApplicationDto.schemeId,
-        administratorId: createApplicationDto.administratorId,
-        status: 'PENDING',
-      },
+      data: createData,
       include: {
         applicant: true,
         scheme: true,
@@ -75,19 +84,26 @@ export class ApplicationsService {
       },
     });
   }
-}
-    return this.prisma.application.create({
-      data: {
-        applicantId: createApplicationDto.applicantId,
-        schemeId: createApplicationDto.schemeId,
-        administratorId: createApplicationDto.administratorId,
-        status: 'PENDING',
-      },
-      include: {
-        applicant: true,
-        scheme: true,
-        administrator: true,
-      },
+
+  private async getDefaultAdministrator(): Promise<string> {
+    const defaultAdmin = await this.prisma.administrator.findFirst({
+      where: {
+        email: 'admin@default.com'
+      }
     });
+
+    if (defaultAdmin) {
+      return defaultAdmin.id;
+    }
+
+    // Create a default administrator if none exists
+    const newAdmin = await this.prisma.administrator.create({
+      data: {
+        email: 'admin@default.com',
+        name: 'Default Administrator',
+      }
+    });
+
+    return newAdmin.id;
   }
 }
