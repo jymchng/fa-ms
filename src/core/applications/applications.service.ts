@@ -2,10 +2,16 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { Prisma } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { PasswordService } from '../common/services/password.service';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly passwordService: PasswordService,
+  ) {}
 
   async findAll() {
     return this.prisma.application.findMany({
@@ -100,9 +106,13 @@ export class ApplicationsService {
   }
 
   private async getDefaultAdministrator(): Promise<string> {
+    const defaultEmail = this.configService.get<string>('admin.defaultEmail') ?? 'admin@default.com';
+    const defaultName = this.configService.get<string>('admin.defaultName') ?? 'Default Administrator';
+    const defaultPassword = this.configService.get<string>('admin.defaultPassword');
+
     const defaultAdmin = await this.prisma.administrator.findFirst({
       where: {
-        email: 'admin@default.com',
+        email: defaultEmail,
       },
     });
 
@@ -111,10 +121,14 @@ export class ApplicationsService {
     }
 
     // Create a default administrator if none exists
+    const password = defaultPassword ?? await this.passwordService.generateSecurePassword();
+    const hashedPassword = await this.passwordService.hash(password);
+
     const newAdmin = await this.prisma.administrator.create({
       data: {
-        email: 'admin@default.com',
-        name: 'Default Administrator',
+        email: defaultEmail,
+        name: defaultName,
+        password: hashedPassword,
       },
     });
 

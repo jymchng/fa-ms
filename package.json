@@ -118,6 +118,8 @@
     "@nestjs/swagger": "^7.1.17",
     "@nestjs/throttler": "^5.0.1",
     "@prisma/client": "^5.7.0",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "jacob-bot-common": "github:mizu-labs/jacob-bot-common",
