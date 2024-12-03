@@ -106,9 +106,15 @@ export class ApplicationsService {
   }
 
   private async getDefaultAdministrator(): Promise<string> {
-    const defaultEmail = this.configService.get<string>('admin.defaultEmail') ?? 'admin@default.com';
-    const defaultName = this.configService.get<string>('admin.defaultName') ?? 'Default Administrator';
-    const defaultPassword = this.configService.get<string>('admin.defaultPassword');
+    const defaultEmail =
+      this.configService.get<string>('admin.defaultEmail') ??
+      'admin@default.com';
+    const defaultName =
+      this.configService.get<string>('admin.defaultName') ??
+      'Default Administrator';
+    const defaultPassword = this.configService.get<string>(
+      'admin.defaultPassword',
+    );
 
     const defaultAdmin = await this.prisma.administrator.findFirst({
       where: {
@@ -121,7 +127,8 @@ export class ApplicationsService {
     }
 
     // Create a default administrator if none exists
-    const password = defaultPassword ?? await this.passwordService.generateSecurePassword();
+    const password =
+      defaultPassword ?? (await this.passwordService.generateSecurePassword());
     const hashedPassword = await this.passwordService.hash(password);
 
     const newAdmin = await this.prisma.administrator.create({

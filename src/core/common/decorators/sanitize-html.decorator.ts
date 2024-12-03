@@ -11,7 +11,9 @@ const defaultOptions: sanitizeHtml.IOptions = {
 
 export function SanitizeHtml(options?: sanitizeHtml.IOptions) {
   return Transform(({ value }) => {
-    if (!value) return value;
+    if (!value) {
+      return value;
+    }
     return sanitizeHtml(value, options || defaultOptions);
   });
 }

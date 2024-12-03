@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set +e # ignore error
 npm run format
+npm run lint
+npm run check
 set -e
 set +e # ignore error
 npm run test
