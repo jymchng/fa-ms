@@ -43,6 +43,7 @@
     "prisma:dev-migrate": "dotenv -e .env.development -e secrets/.db.development -- npx prisma migrate dev",
     "prisma:dev-reset": "dotenv -e .env.development -e secrets/.db.development -- npx prisma migrate reset",
     "prisma:generate": "npx prisma generate",
+    "prisma:dev-seed": "dotenv -e .env.development -e secrets/.db.development -- npx prisma db seed",
     "reinstall:self-deps": "npm uninstall jacob-bot-common && npm i git+ssh://git@github.com/mizu-labs/jacob-bot-common"
   },
   "bin": {
@@ -128,5 +129,8 @@
     "sanitize-html": "^2.11.0",
     "typia": "^6.5.4",
     "winston": "^3.13.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

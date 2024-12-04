@@ -1,15 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
+import { SchemeWithEligibility } from './types/scheme.types';
 
 @Injectable()
 export class SchemesService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.scheme.findMany();
+    return this.prisma.scheme.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  async findEligibleSchemes(applicantId: string) {
+  async findEligibleSchemes(applicantId: string): Promise<SchemeWithEligibility[]> {
     // First, get the applicant with their household members
     const applicant = await this.prisma.applicant.findUnique({
       where: { id: applicantId },
@@ -19,54 +24,55 @@ export class SchemesService {
     });
 
     if (!applicant) {
-      return [];
+      throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
     }
 
     // Get all schemes
     const schemes = await this.prisma.scheme.findMany();
 
-    // Filter schemes based on eligibility criteria
-    const eligibleSchemes = schemes.filter((scheme) => {
-      const criteria = scheme.criteria as any;
-
-      // Check employment status criteria
-      if (
-        criteria.employment_status &&
-        criteria.employment_status !== applicant.employmentStatus
-      ) {
-        return false;
-      }
-
-      // Check marital status criteria
-      if (
-        criteria.marital_status &&
-        criteria.marital_status !== applicant.maritalStatus
-      ) {
-        return false;
-      }
-
-      // Check household criteria
-      if (criteria.has_children) {
-        const hasChildrenInPrimarySchool = applicant.householdMembers.some(
-          (member) => {
-            const age =
-              new Date().getFullYear() -
-              new Date(member.dateOfBirth).getFullYear();
-            return age >= 6 && age <= 12; // Primary school age range
-          },
-        );
-
-        if (
-          criteria.has_children.school_level === '== primary' &&
-          !hasChildrenInPrimarySchool
-        ) {
-          return false;
-        }
-      }
-
-      return true;
+    // Check eligibility for each scheme
+    const eligibleSchemes = schemes.map((scheme) => {
+      const isEligible = this.checkEligibility(applicant, scheme);
+      return {
+        ...scheme,
+        isEligible,
+      };
     });
 
     return eligibleSchemes;
+  }
+
+  private checkEligibility(
+    applicant: any,
+    scheme: any,
+  ): boolean {
+    // Get total household income
+    const householdIncome = applicant.householdMembers.reduce(
+      (total: number, member: any) => total + (member.monthlyIncome || 0),
+      0
+    );
+
+    // Basic eligibility checks
+    const ageInYears = this.calculateAge(applicant.dateOfBirth);
+    const meetsAgeRequirement = ageInYears >= scheme.minAge && ageInYears <= scheme.maxAge;
+    const meetsIncomeRequirement = householdIncome <= scheme.maxHouseholdIncome;
+    const meetsEmploymentRequirement = scheme.eligibleEmploymentStatuses.includes(
+      applicant.employmentStatus
+    );
+    const meetsMaritalRequirement = scheme.eligibleMaritalStatuses.includes(
+      applicant.maritalStatus
+    );
+
+    return (
+      meetsAgeRequirement &&
+      meetsIncomeRequirement &&
+      meetsEmploymentRequirement &&
+      meetsMaritalRequirement
+    );
+  }
+
+  private calculateAge(dateOfBirth: Date): number {
+    const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
+    return age;
   }
 }
