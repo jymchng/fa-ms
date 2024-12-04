@@ -24,7 +24,7 @@ export class SchemesService {
       this.logger.log('Successfully retrieved all schemes');
       return response;
     } catch (error) {
-      let err = error as Error;
+      const err = error as Error;
       this.logger.error('Failed to fetch schemes', err.stack);
       throw error;
     }
@@ -43,14 +43,18 @@ export class SchemesService {
 
       if (!applicant) {
         this.logger.warn(`Applicant with ID ${applicantId} not found`);
-        throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
+        throw new NotFoundException(
+          `Applicant with ID ${applicantId} not found`,
+        );
       }
 
       this.logger.debug(`Found applicant: ${applicant.name} (${applicantId})`);
-      this.logger.verbose(`Applicant details: ${JSON.stringify({
-        employmentStatus: applicant.employmentStatus,
-        householdSize: applicant.householdMembers.length,
-      })}`);
+      this.logger.verbose(
+        `Applicant details: ${JSON.stringify({
+          employmentStatus: applicant.employmentStatus,
+          householdSize: applicant.householdMembers.length,
+        })}`,
+      );
 
       const schemes = await this.prisma.scheme.findMany();
       this.logger.debug(`Found ${schemes.length} schemes to evaluate`);
@@ -68,7 +72,7 @@ export class SchemesService {
             isEligible,
           });
         } catch (error) {
-          let err = error as Error;
+          const err = error as Error;
           this.logger.warn(
             `Failed to evaluate scheme ${scheme.name}: ${err.message}`,
           );
@@ -85,7 +89,7 @@ export class SchemesService {
       );
       return eligibleSchemes;
     } catch (error) {
-      let err = error as Error;
+      const err = error as Error;
       this.logger.error(
         `Error processing eligibility for applicant ${applicantId}`,
         err.stack,

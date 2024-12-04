@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { Prisma } from '@prisma/client';
@@ -17,7 +22,7 @@ export class ApplicationsService {
 
   async findAll() {
     this.logger.log('Fetching all applications');
-    
+
     try {
       const applications = await this.prisma.application.findMany({
         include: {
@@ -28,13 +33,15 @@ export class ApplicationsService {
       });
 
       this.logger.debug(`Found ${applications.length} applications`);
-      applications.forEach(app => {
-        this.logger.verbose(`Application: ${JSON.stringify({
-          id: app.id,
-          applicantName: app.applicant.name,
-          schemeName: app.scheme.name,
-          status: app.status,
-        })}`);
+      applications.forEach((app) => {
+        this.logger.verbose(
+          `Application: ${JSON.stringify({
+            id: app.id,
+            applicantName: app.applicant.name,
+            schemeName: app.scheme.name,
+            status: app.status,
+          })}`,
+        );
       });
 
       return applications;
@@ -47,7 +54,9 @@ export class ApplicationsService {
 
   async create(createApplicationDto: CreateApplicationDto) {
     this.logger.log('Creating new application');
-    this.logger.verbose(`Application data: ${JSON.stringify(createApplicationDto)}`);
+    this.logger.verbose(
+      `Application data: ${JSON.stringify(createApplicationDto)}`,
+    );
 
     try {
       // Check if applicant exists
@@ -57,8 +66,12 @@ export class ApplicationsService {
       });
 
       if (!applicant) {
-        this.logger.warn(`Applicant not found: ${createApplicationDto.applicantId}`);
-        throw new NotFoundException(`Applicant with ID ${createApplicationDto.applicantId} not found`);
+        this.logger.warn(
+          `Applicant not found: ${createApplicationDto.applicantId}`,
+        );
+        throw new NotFoundException(
+          `Applicant with ID ${createApplicationDto.applicantId} not found`,
+        );
       }
       this.logger.debug(`Found applicant: ${applicant.name}`);
 
@@ -69,7 +82,9 @@ export class ApplicationsService {
 
       if (!scheme) {
         this.logger.warn(`Scheme not found: ${createApplicationDto.schemeId}`);
-        throw new NotFoundException(`Scheme with ID ${createApplicationDto.schemeId} not found`);
+        throw new NotFoundException(
+          `Scheme with ID ${createApplicationDto.schemeId} not found`,
+        );
       }
       this.logger.debug(`Found scheme: ${scheme.name}`);
 
@@ -108,7 +123,9 @@ export class ApplicationsService {
 
       if (!isEligible) {
         this.logger.warn('Applicant does not meet eligibility criteria');
-        throw new BadRequestException('Applicant does not meet eligibility criteria');
+        throw new BadRequestException(
+          'Applicant does not meet eligibility criteria',
+        );
       }
 
       // First find or create a default administrator if none provided
@@ -133,13 +150,17 @@ export class ApplicationsService {
         },
       });
 
-      this.logger.log(`Successfully created application with ID: ${application.id}`);
-      this.logger.debug(`Application details: ${JSON.stringify({
-        id: application.id,
-        applicantName: application.applicant.name,
-        schemeName: application.scheme.name,
-        status: application.status,
-      })}`);
+      this.logger.log(
+        `Successfully created application with ID: ${application.id}`,
+      );
+      this.logger.debug(
+        `Application details: ${JSON.stringify({
+          id: application.id,
+          applicantName: application.applicant.name,
+          schemeName: application.scheme.name,
+          status: application.status,
+        })}`,
+      );
 
       return application;
     } catch (error) {
@@ -176,7 +197,8 @@ export class ApplicationsService {
 
       // Create a default administrator if none exists
       const password =
-        defaultPassword ?? (await this.passwordService.generateSecurePassword());
+        defaultPassword ??
+        (await this.passwordService.generateSecurePassword());
       const hashedPassword = await this.passwordService.hash(password);
 
       const newAdmin = await this.prisma.administrator.create({

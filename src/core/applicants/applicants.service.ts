@@ -33,13 +33,15 @@ export class ApplicantsService {
       });
 
       this.logger.debug(`Found ${applicants.length} applicants`);
-      applicants.forEach(applicant => {
-        this.logger.verbose(`Applicant: ${JSON.stringify({
-          id: applicant.id,
-          name: applicant.name,
-          householdSize: applicant.householdMembers.length,
-          applicationCount: applicant.applications.length,
-        })}`);
+      applicants.forEach((applicant) => {
+        this.logger.verbose(
+          `Applicant: ${JSON.stringify({
+            id: applicant.id,
+            name: applicant.name,
+            householdSize: applicant.householdMembers.length,
+            applicationCount: applicant.applications.length,
+          })}`,
+        );
       });
 
       return applicants;
@@ -71,12 +73,14 @@ export class ApplicantsService {
         throw new NotFoundException(`Applicant with ID ${id} not found`);
       }
 
-      this.logger.debug(`Found applicant: ${JSON.stringify({
-        id: applicant.id,
-        name: applicant.name,
-        householdSize: applicant.householdMembers.length,
-        applicationCount: applicant.applications.length,
-      })}`);
+      this.logger.debug(
+        `Found applicant: ${JSON.stringify({
+          id: applicant.id,
+          name: applicant.name,
+          householdSize: applicant.householdMembers.length,
+          applicationCount: applicant.applications.length,
+        })}`,
+      );
 
       return applicant;
     } catch (error) {
@@ -88,7 +92,9 @@ export class ApplicantsService {
 
   async create(createApplicantDto: CreateApplicantDto) {
     this.logger.log('Creating new applicant');
-    this.logger.verbose(`Applicant data: ${JSON.stringify(createApplicantDto)}`);
+    this.logger.verbose(
+      `Applicant data: ${JSON.stringify(createApplicantDto)}`,
+    );
 
     const { householdMembers, ...applicantData } = createApplicantDto;
 
@@ -151,13 +157,17 @@ export class ApplicantsService {
         },
       });
 
-      this.logger.log(`Successfully created applicant with ID: ${applicant.id}`);
-      this.logger.debug(`Applicant details: ${JSON.stringify({
-        id: applicant.id,
-        name: applicant.name,
-        householdSize: applicant.householdMembers.length,
-        employmentStatus: applicant.employmentStatus,
-      })}`);
+      this.logger.log(
+        `Successfully created applicant with ID: ${applicant.id}`,
+      );
+      this.logger.debug(
+        `Applicant details: ${JSON.stringify({
+          id: applicant.id,
+          name: applicant.name,
+          householdSize: applicant.householdMembers.length,
+          employmentStatus: applicant.employmentStatus,
+        })}`,
+      );
 
       return applicant;
     } catch (error) {
