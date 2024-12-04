@@ -25,15 +25,15 @@ export class SchemeResponseDto {
   @ApiProperty({ description: 'Description of the scheme' })
   description!: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Benefits provided by the scheme',
-    type: [String]
+    type: [String],
   })
   benefits!: string[];
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Eligibility criteria for the scheme',
-    type: 'object'
+    type: 'object',
   })
   criteria!: SchemeEligibilityCriteria;
 
@@ -43,15 +43,21 @@ export class SchemeResponseDto {
   @ApiProperty({ description: 'Date when the scheme was last updated' })
   updatedAt!: Date;
 
-  @ApiProperty({ description: 'Whether the applicant is eligible for this scheme' })
+  @ApiProperty({
+    description: 'Whether the applicant is eligible for this scheme',
+  })
   isEligible!: boolean;
 
-  static from(scheme: Partial<Scheme> & { isEligible?: boolean }): SchemeResponseDto {
+  static from(
+    scheme: Partial<Scheme> & { isEligible?: boolean },
+  ): SchemeResponseDto {
     const dto = new SchemeResponseDto();
     dto.id = scheme.id!;
     dto.name = scheme.name!;
     dto.description = scheme.description!;
-    dto.benefits = Array.isArray(scheme.benefits) ? scheme.benefits.map(String) : [""];
+    dto.benefits = Array.isArray(scheme.benefits)
+      ? scheme.benefits.map(String)
+      : [''];
     dto.criteria = scheme.criteria as SchemeEligibilityCriteria;
     dto.createdAt = scheme.createdAt!;
     dto.updatedAt = scheme.updatedAt!;
@@ -81,7 +87,7 @@ export class EligibleQueryParamsDto {
   @ApiProperty({
     description: 'UUID of the applicant',
     format: 'uuid',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   applicantId!: string;
 }

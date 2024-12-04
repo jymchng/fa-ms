@@ -37,7 +37,7 @@ TS_CONFIG_FILENAME=tsconfig.$BUILD_FOLDER
 # Define function to build for development
 build_development() {
     npx cross-env NODE_ENV=$ENV nest build --path ./$TS_CONFIG_FILENAME.json --tsc || exit 1
-    npx cross-env NODE_ENV=$ENV npm run copy-files-dev
+    npx cross-env NODE_ENV=$ENV npm run copy:files-dev
 
     # Call the copy files script for development
     log "Calling copyfiles.sh for development..."
@@ -47,7 +47,7 @@ build_development() {
 # Define function to build for production
 build_production() {
     npx cross-env NODE_ENV=$ENV nest build --path ./$TS_CONFIG_FILENAME.json --tsc || exit 1
-    npm run copy-files
+    npm run copy:files
 
     # Call the copy files script for production
     log "Calling copyfiles.sh for production..."
@@ -76,9 +76,17 @@ case "$ENV" in
         ;;
 esac
 
+# Common post-invocations
+# log "Minifying all \`.js\` files inside \`$BUILD_FOLDER\`"
+# find $BUILD_FOLDER -type f -name "*.js" -exec bash -c 'echo ">>> minifying {}" && npx esbuild --bundle "{}" --minify --sourcemap --platform=node --outfile="{}" --allow-overwrite' \;
+# log "Minified all \`.js\` files!"
 log "Making logs directory in $LOG_DIR"
 mkdir -p $LOG_DIR
 bash scripts/copyfiles.sh $ENV
 
 cat prisma/schema.prisma
+log "Running ls -la ./node_modules/@prisma/client"
+ls -la ../node_modules/@prisma/client
+log "Running ls -la ./node_modules/.prisma/client"
+ls -la ../node_modules/.prisma/client
 exit 0

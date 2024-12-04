@@ -5,9 +5,8 @@ import {
   CallHandler,
   BadRequestException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 
 export interface Response<T> {
   data: T;
