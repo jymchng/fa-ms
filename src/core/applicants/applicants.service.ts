@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
 import { CreateApplicantDto } from './dto/create-applicant.dto';
 import { Prisma } from '@prisma/client';
@@ -80,7 +84,7 @@ export class ApplicantsService {
           employmentStatus: applicantData.employmentStatus,
           sex: applicantData.sex,
           householdMembers: {
-            create: householdMembers?.map(member => ({
+            create: householdMembers?.map((member) => ({
               name: member.name,
               dateOfBirth: new Date(member.dateOfBirth),
               employmentStatus: member.employmentStatus,

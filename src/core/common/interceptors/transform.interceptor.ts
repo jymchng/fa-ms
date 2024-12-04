@@ -3,9 +3,11 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  BadRequestException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 export interface Response<T> {
   data: T;
@@ -24,14 +26,23 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<Response<T>> {
     const request = context.switchToHttp().getRequest();
+
     return next.handle().pipe(
-      map((data) => ({
-        data,
-        meta: {
-          timestamp: new Date().toISOString(),
-          path: request.url,
-        },
-      })),
+      map((data) => {
+        // If data is null or undefined, throw BadRequestException
+        if (data === null || data === undefined) {
+          throw new BadRequestException('Invalid request parameters');
+        }
+
+        return {
+          data,
+          meta: {
+            timestamp: new Date().toISOString(),
+            path: request.url,
+          },
+        };
+      }),
+      catchError((err) => throwError(() => err)),
     );
   }
 }

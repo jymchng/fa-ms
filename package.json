@@ -26,7 +26,7 @@
     "build:lib": "tsup",
     "build:prod": "rm -fr build && bash scripts/npm-build.sh production",
     "build:all": "bash scripts/npm-build.sh",
-    "watch:dev": "dotenv -e .env.development -e secrets/.db.development -- tsc-watch --onSuccess \"dotenv -e .env.development -e secrets/.db.development -- node build-dev/src/bin/main.js\"",
+    "watch:dev": "dotenv -e .env.development -e secrets/.db.development -- tsc-watch --onSuccess \"npm run run:dev\"",
     "run:dev": "npm run build:dev && dotenv -e .env.development -e secrets/.db.development -- node build-dev/src/bin/main.js",
     "run:prod": "npm run build:prod && dotenv -e .env.production -e secrets/.db.production -- node build/src/bin/main.js",
     "docker:dev": "bash scripts/docker-run.sh development noclean",

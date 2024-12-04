@@ -1,21 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../vendors/prisma/prisma.service';
-import { SchemeWithEligibility } from './types/scheme.types';
+import { Applicant } from '@prisma/client';
+import { SchemeEligibilityCriteria, SchemeResponseDto } from './types/scheme.types';
 
 @Injectable()
 export class SchemesService {
+  private readonly logger = new Logger(SchemesService.name);
+
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.scheme.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  async findAll(): Promise<SchemeResponseDto[]> {
+    const schemes = await this.prisma.scheme.findMany();
+    return schemes.map(scheme => SchemeResponseDto.from(scheme));
   }
 
-  async findEligibleSchemes(applicantId: string): Promise<SchemeWithEligibility[]> {
-    // First, get the applicant with their household members
+  async findEligibleSchemes(
+    applicantId: string,
+  ): Promise<SchemeResponseDto[]> {
+    this.logger.debug(`Finding eligible schemes for applicant ${applicantId}`);
+
     const applicant = await this.prisma.applicant.findUnique({
       where: { id: applicantId },
       include: {
@@ -24,55 +27,68 @@ export class SchemesService {
     });
 
     if (!applicant) {
+      this.logger.warn(`Applicant with ID ${applicantId} not found`);
       throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
     }
 
-    // Get all schemes
-    const schemes = await this.prisma.scheme.findMany();
+    this.logger.log(`Found applicant: ${applicant.name} (${applicantId})`);
 
-    // Check eligibility for each scheme
-    const eligibleSchemes = schemes.map((scheme) => {
-      const isEligible = this.checkEligibility(applicant, scheme);
-      return {
-        ...scheme,
-        isEligible,
-      };
+    const schemes = await this.prisma.scheme.findMany();
+    const eligibleSchemes = schemes.map(scheme => {
+      try {
+        const criteria = scheme.criteria as SchemeEligibilityCriteria;
+        return SchemeResponseDto.from({
+          ...scheme,
+          isEligible: this.checkEligibility(applicant, criteria),
+        });
+      } catch {
+        return SchemeResponseDto.from({
+          ...scheme,
+          isEligible: false,
+        });
+      }
     });
 
+    this.logger.debug(`Found ${eligibleSchemes.length} eligible schemes`);
     return eligibleSchemes;
   }
 
   private checkEligibility(
-    applicant: any,
-    scheme: any,
+    applicant: Applicant & { householdMembers: any[] },
+    criteria: SchemeEligibilityCriteria,
   ): boolean {
-    // Get total household income
-    const householdIncome = applicant.householdMembers.reduce(
-      (total: number, member: any) => total + (member.monthlyIncome || 0),
-      0
-    );
+    // Check employment status if specified
+    if (criteria.employment_status) {
+      if (applicant.employmentStatus.toLowerCase() !== criteria.employment_status) {
+        return false;
+      }
+    }
 
-    // Basic eligibility checks
-    const ageInYears = this.calculateAge(applicant.dateOfBirth);
-    const meetsAgeRequirement = ageInYears >= scheme.minAge && ageInYears <= scheme.maxAge;
-    const meetsIncomeRequirement = householdIncome <= scheme.maxHouseholdIncome;
-    const meetsEmploymentRequirement = scheme.eligibleEmploymentStatuses.includes(
-      applicant.employmentStatus
-    );
-    const meetsMaritalRequirement = scheme.eligibleMaritalStatuses.includes(
-      applicant.maritalStatus
-    );
+    // Check for children in primary school if specified
+    if (criteria.has_children?.school_level === '== primary') {
+      const hasChildrenInPrimarySchool = applicant.householdMembers.some(member => {
+        const age = this.calculateAge(member.dateOfBirth);
+        return age >= 7 && age <= 12; // Primary school age range in Singapore
+      });
 
-    return (
-      meetsAgeRequirement &&
-      meetsIncomeRequirement &&
-      meetsEmploymentRequirement &&
-      meetsMaritalRequirement
-    );
+      if (!hasChildrenInPrimarySchool) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private calculateAge(dateOfBirth: Date): number {
-    const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
     return age;
   }
 }
