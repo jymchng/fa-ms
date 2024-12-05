@@ -1,4 +1,9 @@
-import { Injectable, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 
@@ -11,10 +16,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     this.logger.log('JWT Auth Guard initialized');
   }
 
-  override canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  override canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    this.logger.debug(`Authenticating request to: ${request.method} ${request.url}`);
-    
+    this.logger.debug(
+      `Authenticating request to: ${request.method} ${request.url}`,
+    );
+
     return super.canActivate(context);
   }
 
@@ -28,7 +37,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       this.logger.error('Authentication error:', err);
       throw err;
     }
-    
+
     if (!user) {
       this.logger.warn('Authentication failed: No user found');
       throw new UnauthorizedException('Authentication required');
@@ -36,7 +45,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     this.logger.log(`Successfully authenticated user: ${user.email}`);
     this.logger.debug(`User details: ${JSON.stringify(user)}`);
-    
+
     return user;
   }
 }

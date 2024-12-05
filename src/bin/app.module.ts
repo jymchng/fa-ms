@@ -7,12 +7,7 @@ import { SchemesModule } from '../core/schemes/schemes.module';
 import { PrismaModule } from '../core/prisma/prisma.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    AuthModule,
-    ApplicantsModule,
-    SchemesModule,
-  ],
+  imports: [PrismaModule, AuthModule, ApplicantsModule, SchemesModule],
   controllers: [AppController],
   providers: [AppService],
 })

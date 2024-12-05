@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums/role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -10,7 +15,7 @@ export class RolesGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    private prisma: PrismaService
+    private prisma: PrismaService,
   ) {
     this.logger.log('Roles Guard initialized');
   }
@@ -21,7 +26,9 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    this.logger.debug(`Required roles for this route: ${requiredRoles?.join(', ') || 'none'}`);
+    this.logger.debug(
+      `Required roles for this route: ${requiredRoles?.join(', ') || 'none'}`,
+    );
 
     if (!requiredRoles) {
       this.logger.debug('No roles required for this route');
@@ -29,7 +36,7 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
-    
+
     if (!user) {
       this.logger.warn('No user found in request');
       return false;
@@ -40,12 +47,12 @@ export class RolesGuard implements CanActivate {
     // Check if user is an administrator in the database
     const administrator = await this.prisma.administrator.findUnique({
       where: {
-        email: user.email
-      }
+        email: user.email,
+      },
     });
 
     const isAdmin = !!administrator;
-    
+
     if (isAdmin) {
       this.logger.log(`Access granted to administrator: ${user.email}`);
       return true;

@@ -12,15 +12,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     }),
     PrismaModule,
   ],
-  providers: [
-    JwtStrategy,
-    JwtAuthGuard,
-    RolesGuard,
-  ],
-  exports: [
-    PassportModule,
-    JwtAuthGuard,
-    RolesGuard,
-  ],
+  providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
+  exports: [PassportModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}
