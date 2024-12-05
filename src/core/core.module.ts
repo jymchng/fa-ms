@@ -8,7 +8,7 @@ import { SchemesController } from './schemes/schemes.controller';
 import { SchemesService } from './schemes/schemes.service';
 import { ApplicationsController } from './applications/applications.controller';
 import { ApplicationsService } from './applications/applications.service';
-import { PrismaModule } from '../vendors/prisma/prisma.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';

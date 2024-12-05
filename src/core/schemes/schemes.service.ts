@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../vendors/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Applicant } from '@prisma/client';
 import {
   SchemeEligibilityCriteria,

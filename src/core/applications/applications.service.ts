@@ -4,7 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../vendors/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { Prisma } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
