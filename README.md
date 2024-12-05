@@ -1,8 +1,3 @@
-<div align="center">
-  <img src="./assets/nestjs-project-logo.jpeg" width="200">
-</div><p>
-
-
 # Government Assistance Schemes API
 
 A NestJS-based REST API for managing government assistance schemes and applications.
@@ -31,7 +26,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd govtech-assignment-01-dec-2024
+cd fa-ms
 ```
 
 ### 2. Environment Setup
@@ -43,9 +38,6 @@ Create the necessary environment files:
 cp .env.example .env.development
 cp secrets/.db.example secrets/.db.development
 
-# Production environment (if needed)
-cp .env.example .env.production
-cp secrets/.db.example secrets/.db.production
 ```
 
 Update the environment files with your configuration:
@@ -55,7 +47,7 @@ Update the environment files with your configuration:
 ### 3. Install Dependencies
 
 ```bash
-npm install
+npm run install && npm run prepare
 ```
 
 ### 4. Development Environment
@@ -74,15 +66,15 @@ npm run docker:dev:down
 
 2. Run database migrations:
 ```bash
-npm run db:migrate:dev
+npm run prisma:generate
 ```
 
 3. Seed the database (optional):
 ```bash
-npm run db:seed:dev
+npm run prisma:dev-migrate && npm run prisma:dev-seed 
 ```
 
-4. Start the development server:
+4. Start the development server in watch mode:
 ```bash
 npm run watch:dev
 ```
@@ -103,7 +95,6 @@ npm run run:prod
 
 Once the server is running, access the Swagger documentation at:
 - Development: http://localhost:3000/api
-- Production: https://your-domain.com/api
 
 ## Database Management
 
@@ -116,9 +107,6 @@ npm run prisma:migrate:dev
 
 # Reset development database
 npm run db:reset:dev
-
-# View database GUI (Prisma Studio)
-npm run prisma:studio
 ```
 
 ## Testing
@@ -155,17 +143,10 @@ npm run test
 | `npm run run:dev` | Run development build |
 | `npm run run:prod` | Run production build |
 | `npm run docker:dev` | Start development environment in Docker |
-| `npm run docker:dev:down` | Stop development Docker containers |
+| `npm run docker:dev-down` | Stop development Docker containers |
 | `npm run prisma:generate` | Generate Prisma client |
 | `npm run prisma:migrate:dev` | Create a new database migration |
 | `npm run test` | Run tests |
-
-## Contributing
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Run tests
-4. Submit a pull request
 
 ## License
 
